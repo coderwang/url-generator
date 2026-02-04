@@ -1,0 +1,14 @@
+{
+  "name": "url-generator",
+  "version": "1.0.0",
+  "description": "一个支持TypeScript的Chrome插件",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "dev": "tsc --watch"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.268",
+    "typescript": "^5.3.3"
+  }
+}
