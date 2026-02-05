@@ -66,9 +66,25 @@ url-generator/
 └── README.md
 ```
 
-## 使用方法
+## 功能说明
 
-点击Chrome工具栏中的插件图标，即可看到使用React渲染的"Hello World"面板。
+### Generate 页面
+- 输入H5、PC、App三个平台的pathname
+- 点击"OK"按钮生成完整URL
+- 自动拼接已配置的Origin和输入的pathname
+- 显示所有环境（Qa、Pre、Prod）的完整URL
+
+### Setting 页面
+- 配置H5、PC、App三个平台的环境Origin
+- 每个平台可配置Qa、Pre、Prod三个环境
+- 配置会自动保存到Chrome本地存储
+- 示例：`https://www.google.com`
+
+## 使用流程
+
+1. **首次使用**：先进入Setting页面配置各环境的Origin
+2. **生成URL**：在Generate页面输入pathname，点击OK生成完整URL
+3. **配置持久化**：所有配置自动保存，重新打开插件时自动恢复
 
 ## 开发说明
 

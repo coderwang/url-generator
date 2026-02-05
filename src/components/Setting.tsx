@@ -1,0 +1,73 @@
+import React, { useState, useEffect } from 'react';
+import { AllOriginConfig, Platform, Environment } from '../types';
+import './Setting.css';
+
+const Setting: React.FC = () => {
+  const [config, setConfig] = useState<AllOriginConfig>({
+    H5: { Qa: '', Pre: '', Prod: '' },
+    PC: { Qa: '', Pre: '', Prod: '' },
+    App: { Qa: '', Pre: '', Prod: '' },
+  });
+
+  // 从Chrome Storage加载配置
+  useEffect(() => {
+    chrome.storage.local.get(['originConfig'], (result) => {
+      if (result.originConfig) {
+        setConfig(result.originConfig);
+      }
+    });
+  }, []);
+
+  // 保存配置到Chrome Storage
+  const saveConfig = () => {
+    chrome.storage.local.set({ originConfig: config }, () => {
+      alert('配置已保存！');
+    });
+  };
+
+  // 更新单个配置项
+  const updateOrigin = (platform: Platform, env: Environment, value: string) => {
+    setConfig((prev) => ({
+      ...prev,
+      [platform]: {
+        ...prev[platform],
+        [env]: value,
+      },
+    }));
+  };
+
+  const platforms: Platform[] = ['H5', 'PC', 'App'];
+  const environments: Environment[] = ['Qa', 'Pre', 'Prod'];
+
+  return (
+    <div className="setting-container">
+      <h2>环境配置</h2>
+      <p className="setting-desc">配置各平台的环境Origin</p>
+
+      {platforms.map((platform) => (
+        <div key={platform} className="platform-section">
+          <h3>{platform}</h3>
+          <div className="env-inputs">
+            {environments.map((env) => (
+              <div key={env} className="input-group">
+                <label>{env}</label>
+                <input
+                  type="text"
+                  placeholder={`例如: https://www.google.com`}
+                  value={config[platform][env]}
+                  onChange={(e) => updateOrigin(platform, env, e.target.value)}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+
+      <button className="save-btn" onClick={saveConfig}>
+        保存配置
+      </button>
+    </div>
+  );
+};
+
+export default Setting;

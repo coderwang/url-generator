@@ -2,7 +2,10 @@
   "manifest_version": 3,
   "name": "URL Generator",
   "version": "1.0.0",
-  "description": "一个简单的Chrome插件",
+  "description": "多环境URL生成工具",
+  "permissions": [
+    "storage"
+  ],
   "action": {
     "default_popup": "popup.html",
     "default_title": "URL Generator"
