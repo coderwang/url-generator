@@ -1,26 +1,26 @@
-import React, { useState } from 'react';
-import { Toaster } from 'sonner';
-import './App.css';
-import Generate from './components/Generate';
-import Setting from './components/Setting';
+import React, { useState } from "react";
+import { Toaster } from "sonner";
+import "./App.css";
+import Generate from "./components/Generate";
+import Setting from "./components/Setting";
 
-type Page = 'generate' | 'setting';
+type Page = "generate" | "setting";
 
 const App: React.FC = () => {
-  const [currentPage, setCurrentPage] = useState<Page>('generate');
+  const [currentPage, setCurrentPage] = useState<Page>("generate");
 
   return (
     <>
-      <Toaster 
-        position="top-right" 
+      <Toaster
+        position="top-right"
         duration={1000}
-        richColors 
+        richColors
         toastOptions={{
           style: {
-            width: 'fit-content',
-            marginLeft: 'auto',
-            minWidth: '200px',
-            maxWidth: '400px',
+            width: "fit-content",
+            marginLeft: "auto",
+            minWidth: "200px",
+            paddingRight: "30px",
           },
         }}
       />
@@ -29,21 +29,25 @@ const App: React.FC = () => {
           <h1 className="app-title">URL Generator</h1>
           <nav className="nav-menu">
             <button
-              className={`nav-item ${currentPage === 'generate' ? 'active' : ''}`}
-              onClick={() => setCurrentPage('generate')}
+              className={`nav-item ${
+                currentPage === "generate" ? "active" : ""
+              }`}
+              onClick={() => setCurrentPage("generate")}
             >
               Generate
             </button>
             <button
-              className={`nav-item ${currentPage === 'setting' ? 'active' : ''}`}
-              onClick={() => setCurrentPage('setting')}
+              className={`nav-item ${
+                currentPage === "setting" ? "active" : ""
+              }`}
+              onClick={() => setCurrentPage("setting")}
             >
               Setting
             </button>
           </nav>
         </div>
         <div className="main-content">
-          {currentPage === 'generate' ? <Generate /> : <Setting />}
+          {currentPage === "generate" ? <Generate /> : <Setting />}
         </div>
       </div>
     </>

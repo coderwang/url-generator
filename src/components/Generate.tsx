@@ -76,15 +76,15 @@ const Generate: React.FC = () => {
     });
 
     setGeneratedUrls(result);
-    toast.success("URL生成成功！");
+    toast.success("URL generated successfully!");
   };
 
   const platforms: Platform[] = ["H5", "PC", "App"];
   const environments: Environment[] = ["Qa", "Pre", "Prod"];
   const placeholder = {
-    H5: "例如: /scan",
-    PC: "例如: /recommend",
-    App: "例如: /openwith?type=openGeekF1",
+    H5: "e.g. /scan",
+    PC: "e.g. /recommend",
+    App: "e.g. /openwith?type=openGeekF1",
   };
 
   const copyUrls = () => {
@@ -98,7 +98,7 @@ const Generate: React.FC = () => {
         urls += "\n";
       });
       navigator.clipboard.writeText(urls);
-      toast.success("URL已复制到剪贴板！");
+      toast.success("Copied all URLs to clipboard!");
     }
   };
 
@@ -109,14 +109,16 @@ const Generate: React.FC = () => {
         urls += `${env}: ${url}\n`;
       });
       navigator.clipboard.writeText(urls);
-      toast.success("URL已复制到剪贴板！");
+      toast.success(`Copied ${platform} URLs to clipboard!`);
     }
   };
 
   return (
     <div className="generate-container">
-      <h2>生成URL</h2>
-      <p className="generate-desc">输入各平台的pathname，生成完整URL</p>
+      <h2>Generate URLs</h2>
+      <p className="generate-desc">
+        Enter the pathname for each platform, and generate the complete URL
+      </p>
 
       <div className="path-inputs">
         {platforms.map((platform) => (
@@ -133,13 +135,13 @@ const Generate: React.FC = () => {
       </div>
 
       <button className="main-action-btn" onClick={generateUrls}>
-        OK - 生成URL
+        Generate URLs
       </button>
 
       {generatedUrls && (
         <>
           <div className="result-container">
-            <h3>生成的URL</h3>
+            <h3>Generated URLs</h3>
             {platforms.map((platform) => (
               <div key={platform} className="result-section">
                 <div className="platform-container">
@@ -163,13 +165,13 @@ const Generate: React.FC = () => {
                           navigator.clipboard.writeText(
                             generatedUrls[platform][env]
                           );
-                          toast.success("URL已复制到剪贴板！");
+                          toast.success("Copied URL successfully!");
                         }
                       }}
                     >
                       <span className="env-label">{env}:</span>
                       <div className="url-value">
-                        {generatedUrls[platform][env] || "未配置"}
+                        {generatedUrls[platform][env] || "Not configured"}
                       </div>
                     </div>
                   ))}

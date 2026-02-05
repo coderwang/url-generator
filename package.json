@@ -1,7 +1,7 @@
 {
   "name": "url-generator",
   "version": "1.0.0",
-  "description": "一个使用React + TypeScript的Chrome插件",
+  "description": "URL Generator Chrome Extension",
   "scripts": {
     "build": "webpack --mode production",
     "dev": "webpack --mode development --watch",

@@ -1,18 +1,18 @@
-import React, { useState, useEffect } from 'react';
-import { toast } from 'sonner';
-import { AllOriginConfig, Platform, Environment } from '../types';
-import './Setting.css';
+import React, { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { AllOriginConfig, Environment, Platform } from "../types";
+import "./Setting.css";
 
 const Setting: React.FC = () => {
   const [config, setConfig] = useState<AllOriginConfig>({
-    H5: { Qa: '', Pre: '', Prod: '' },
-    PC: { Qa: '', Pre: '', Prod: '' },
-    App: { Qa: '', Pre: '', Prod: '' },
+    H5: { Qa: "", Pre: "", Prod: "" },
+    PC: { Qa: "", Pre: "", Prod: "" },
+    App: { Qa: "", Pre: "", Prod: "" },
   });
 
   // 从Chrome Storage加载配置
   useEffect(() => {
-    chrome.storage.local.get(['originConfig'], (result) => {
+    chrome.storage.local.get(["originConfig"], (result) => {
       if (result.originConfig) {
         setConfig(result.originConfig);
       }
@@ -22,12 +22,16 @@ const Setting: React.FC = () => {
   // 保存配置到Chrome Storage
   const saveConfig = () => {
     chrome.storage.local.set({ originConfig: config }, () => {
-      toast.success('配置已保存！');
+      toast.success("Config saved successfully!");
     });
   };
 
   // 更新单个配置项
-  const updateOrigin = (platform: Platform, env: Environment, value: string) => {
+  const updateOrigin = (
+    platform: Platform,
+    env: Environment,
+    value: string
+  ) => {
     setConfig((prev) => ({
       ...prev,
       [platform]: {
@@ -37,30 +41,32 @@ const Setting: React.FC = () => {
     }));
   };
 
-  const platforms: Platform[] = ['H5', 'PC', 'App'];
-  const environments: Environment[] = ['Qa', 'Pre', 'Prod'];
+  const platforms: Platform[] = ["H5", "PC", "App"];
+  const environments: Environment[] = ["Qa", "Pre", "Prod"];
   const placeholder = {
     H5: {
-      Qa: '例如: https://hk-m-qa.weizhipin.com',
-      Pre: '例如: https://m-pre.offertoday.com',
-      Prod: '例如: https://m.offertoday.com',
+      Qa: "e.g. https://hk-m-qa.weizhipin.com",
+      Pre: "e.g. https://m-pre.offertoday.com",
+      Prod: "e.g. https://m.offertoday.com",
     },
     PC: {
-      Qa: '例如: https://hongkong-victoria-web-qa.weizhipin.com',
-      Pre: '例如: https://www-pre.offertoday.com',
-      Prod: '例如: https://www.offertoday.com',
+      Qa: "e.g. https://hongkong-victoria-web-qa.weizhipin.com",
+      Pre: "e.g. https://www-pre.offertoday.com",
+      Prod: "e.g. https://www.offertoday.com",
     },
     App: {
-      Qa: '例如: otd://offertoday.app',
-      Pre: '例如: otd://offertoday.app',
-      Prod: '例如: otd://offertoday.app',
+      Qa: "e.g. otd://offertoday.app",
+      Pre: "e.g. otd://offertoday.app",
+      Prod: "e.g. otd://offertoday.app",
     },
-  }
+  };
 
   return (
     <div className="setting-container">
-      <h2>环境配置</h2>
-      <p className="setting-desc">配置各平台的环境Origin</p>
+      <h2>Environment Configuration</h2>
+      <p className="setting-desc">
+        Configure the environment Origin for each platform
+      </p>
 
       {platforms.map((platform) => (
         <div key={platform} className="platform-section">
@@ -82,7 +88,7 @@ const Setting: React.FC = () => {
       ))}
 
       <button className="save-btn" onClick={saveConfig}>
-        保存配置
+        Save Configuration
       </button>
     </div>
   );
