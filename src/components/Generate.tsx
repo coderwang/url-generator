@@ -17,11 +17,14 @@ const Generate: React.FC = () => {
 
   const [generatedUrls, setGeneratedUrls] = useState<AllOriginConfig | null>(null);
 
-  // 加载Origin配置
+  // 加载Origin配置和Pathname配置
   useEffect(() => {
-    chrome.storage.local.get(['originConfig'], (result) => {
+    chrome.storage.local.get(['originConfig', 'pathConfig'], (result) => {
       if (result.originConfig) {
         setOriginConfig(result.originConfig);
+      }
+      if (result.pathConfig) {
+        setPathConfig(result.pathConfig);
       }
     });
   }, []);
@@ -36,6 +39,11 @@ const Generate: React.FC = () => {
 
   // 生成URL
   const generateUrls = () => {
+    // 保存pathname配置到Chrome Storage
+    chrome.storage.local.set({ pathConfig }, () => {
+      console.log('Pathname配置已保存');
+    });
+
     const result: AllOriginConfig = {
       H5: { Qa: '', Pre: '', Prod: '' },
       PC: { Qa: '', Pre: '', Prod: '' },
