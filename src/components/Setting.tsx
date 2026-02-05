@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import { AllOriginConfig, Platform, Environment } from '../types';
 import './Setting.css';
 
@@ -21,7 +22,7 @@ const Setting: React.FC = () => {
   // 保存配置到Chrome Storage
   const saveConfig = () => {
     chrome.storage.local.set({ originConfig: config }, () => {
-      alert('配置已保存！');
+      toast.success('配置已保存！');
     });
   };
 

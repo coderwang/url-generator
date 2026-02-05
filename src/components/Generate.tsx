@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { AllOriginConfig, PathConfig, Platform, Environment } from '../types';
 import './Generate.css';
+import { toast } from 'sonner';
 
 const Generate: React.FC = () => {
   const [originConfig, setOriginConfig] = useState<AllOriginConfig>({
@@ -71,6 +72,7 @@ const Generate: React.FC = () => {
     });
 
     setGeneratedUrls(result);
+    toast.success('URL生成成功！');
   };
 
   const platforms: Platform[] = ['H5', 'PC', 'App'];
