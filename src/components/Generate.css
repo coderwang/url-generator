@@ -46,7 +46,7 @@
   border-color: #667eea;
 }
 
-.generate-btn {
+.main-action-btn {
   width: 100%;
   padding: 12px;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -60,12 +60,12 @@
   margin-bottom: 24px;
 }
 
-.generate-btn:hover {
+.main-action-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
 
-.generate-btn:active {
+.main-action-btn:active {
   transform: translateY(0);
 }
 
@@ -73,6 +73,7 @@
   background: #f8f9fa;
   border-radius: 8px;
   padding: 16px;
+  margin-bottom: 24px;
 }
 
 .result-container h3 {
@@ -89,10 +90,30 @@
   margin-bottom: 0;
 }
 
-.result-section h4 {
-  font-size: 16px;
-  color: #667eea;
+.result-section .platform-container {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 8px;
   margin-bottom: 12px;
+}
+
+.result-section .platform-container .platform-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: #667eea;
+  line-height: 24px;
+}
+
+.result-section .platform-container .copy-platform-btn {
+  height: 16px;
+  padding: 0 4px;
+  font-size: 12px;
+  color: #667eea;
+  line-height: 14px;
+  border: 1px solid #667eea;
+  border-radius: 4px;
+  cursor: pointer;
 }
 
 .url-list {
@@ -109,6 +130,13 @@
   background: white;
   border-radius: 4px;
   border: 1px solid #e0e0e0;
+  user-select: none;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.url-item:hover {
+  background: #f0f0f0;
 }
 
 .env-label {
@@ -121,5 +149,5 @@
   font-size: 13px;
   color: #333;
   word-break: break-all;
-  font-family: 'Courier New', monospace;
+  font-family: "Courier New", monospace;
 }
