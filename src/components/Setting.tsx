@@ -38,6 +38,23 @@ const Setting: React.FC = () => {
 
   const platforms: Platform[] = ['H5', 'PC', 'App'];
   const environments: Environment[] = ['Qa', 'Pre', 'Prod'];
+  const placeholder = {
+    H5: {
+      Qa: '例如: https://hk-m-qa.weizhipin.com',
+      Pre: '例如: https://m-pre.offertoday.com',
+      Prod: '例如: https://m.offertoday.com',
+    },
+    PC: {
+      Qa: '例如: https://hongkong-victoria-web-qa.weizhipin.com',
+      Pre: '例如: https://www-pre.offertoday.com',
+      Prod: '例如: https://www.offertoday.com',
+    },
+    App: {
+      Qa: '例如: otd://offertoday.app',
+      Pre: '例如: otd://offertoday.app',
+      Prod: '例如: otd://offertoday.app',
+    },
+  }
 
   return (
     <div className="setting-container">
@@ -53,7 +70,7 @@ const Setting: React.FC = () => {
                 <label>{env}</label>
                 <input
                   type="text"
-                  placeholder={`例如: https://www.google.com`}
+                  placeholder={placeholder[platform][env]}
                   value={config[platform][env]}
                   onChange={(e) => updateOrigin(platform, env, e.target.value)}
                 />

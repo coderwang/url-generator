@@ -67,6 +67,11 @@ const Generate: React.FC = () => {
 
   const platforms: Platform[] = ['H5', 'PC', 'App'];
   const environments: Environment[] = ['Qa', 'Pre', 'Prod'];
+  const placeholder = {
+    H5: '例如: /scan',
+    PC: '例如: /recommend',
+    App: '例如: /openwith?type=openGeekF1',
+  }
 
   return (
     <div className="generate-container">
@@ -79,7 +84,7 @@ const Generate: React.FC = () => {
             <label>{platform} Pathname</label>
             <input
               type="text"
-              placeholder={`例如: /path/to/page`}
+              placeholder={placeholder[platform]}
               value={pathConfig[platform]}
               onChange={(e) => updatePath(platform, e.target.value)}
             />
