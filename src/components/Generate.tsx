@@ -87,16 +87,29 @@ const Generate: React.FC = () => {
     App: "e.g. /openwith?type=openGeekF1",
   };
 
-  const copyUrls = () => {
+  const getAllUrls = () => {
+    let urls = "";
     if (generatedUrls) {
-      let urls = "";
-      environments.forEach((env) => {
+      environments.forEach((env, index) => {
         urls += `${env}\n`;
-        platforms.forEach((platform) => {
-          urls += `${platform}: ${generatedUrls[platform][env]}\n`;
+        platforms.forEach((platform, idx) => {
+          urls += `${platform}: ${generatedUrls[platform][env]}`;
+          if (
+            index !== environments.length - 1 ||
+            idx !== platforms.length - 1
+          ) {
+            urls += "\n";
+          }
         });
-        urls += "\n";
+        index !== environments.length - 1 && (urls += "\n");
       });
+    }
+    return urls;
+  };
+
+  const copyAllUrls = () => {
+    const urls = getAllUrls();
+    if (urls) {
       navigator.clipboard.writeText(urls);
       toast.success("Copied all URLs to clipboard!");
     }
@@ -111,6 +124,35 @@ const Generate: React.FC = () => {
       navigator.clipboard.writeText(urls);
       toast.success(`Copied ${platform} URLs to clipboard!`);
     }
+  };
+
+  const saveSnapshot = () => {
+    const urls = getAllUrls();
+    if (!urls) {
+      toast.error("No URLs to save!");
+      return;
+    }
+
+    const snapshotName = prompt("Enter snapshot name:");
+    if (!snapshotName || !snapshotName.trim()) {
+      return;
+    }
+
+    // 读取现有的快照
+    chrome.storage.local.get(["snapshots"], (result) => {
+      const snapshots = result.snapshots || {};
+
+      // 保存新快照
+      snapshots[snapshotName.trim()] = {
+        name: snapshotName.trim(),
+        urls: urls,
+        timestamp: Date.now(),
+      };
+
+      chrome.storage.local.set({ snapshots }, () => {
+        toast.success(`Snapshot "${snapshotName}" saved!`);
+      });
+    });
   };
 
   return (
@@ -134,7 +176,11 @@ const Generate: React.FC = () => {
         ))}
       </div>
 
-      <button className="main-action-btn" onClick={generateUrls}>
+      <button
+        className="main-action-btn"
+        style={{ marginBottom: "24px" }}
+        onClick={generateUrls}
+      >
         Generate URLs
       </button>
 
@@ -179,9 +225,14 @@ const Generate: React.FC = () => {
               </div>
             ))}
           </div>
-          <button className="main-action-btn" onClick={copyUrls}>
-            Copy All URLs
-          </button>
+          <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+            <button className="main-action-btn" onClick={copyAllUrls}>
+              Copy All URLs
+            </button>
+            <button className="main-action-btn" onClick={saveSnapshot}>
+              Save Snapshot
+            </button>
+          </div>
         </>
       )}
     </div>

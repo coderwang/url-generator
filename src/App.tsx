@@ -3,8 +3,9 @@ import { Toaster } from "sonner";
 import "./App.css";
 import Generate from "./components/Generate";
 import Setting from "./components/Setting";
+import Snapshot from "./components/Snapshot";
 
-type Page = "generate" | "setting";
+type Page = "generate" | "snapshot" | "setting";
 
 const App: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<Page>("generate");
@@ -13,7 +14,7 @@ const App: React.FC = () => {
     <>
       <Toaster
         position="top-right"
-        duration={1000}
+        duration={1500}
         richColors
         toastOptions={{
           style: {
@@ -38,6 +39,14 @@ const App: React.FC = () => {
             </button>
             <button
               className={`nav-item ${
+                currentPage === "snapshot" ? "active" : ""
+              }`}
+              onClick={() => setCurrentPage("snapshot")}
+            >
+              Snapshot
+            </button>
+            <button
+              className={`nav-item ${
                 currentPage === "setting" ? "active" : ""
               }`}
               onClick={() => setCurrentPage("setting")}
@@ -47,7 +56,9 @@ const App: React.FC = () => {
           </nav>
         </div>
         <div className="main-content">
-          {currentPage === "generate" ? <Generate /> : <Setting />}
+          {currentPage === "generate" && <Generate />}
+          {currentPage === "snapshot" && <Snapshot />}
+          {currentPage === "setting" && <Setting />}
         </div>
       </div>
     </>

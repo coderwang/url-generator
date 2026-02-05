@@ -1,5 +1,5 @@
-export type Platform = 'H5' | 'PC' | 'App';
-export type Environment = 'Qa' | 'Pre' | 'Prod';
+export type Platform = "H5" | "PC" | "App";
+export type Environment = "Qa" | "Pre" | "Prod";
 
 export interface OriginConfig {
   Qa: string;
@@ -17,4 +17,14 @@ export interface PathConfig {
   H5: string;
   PC: string;
   App: string;
+}
+
+export interface Snapshot {
+  name: string;
+  urls: string;
+  timestamp: number;
+}
+
+export interface SnapshotsStorage {
+  [key: string]: Snapshot;
 }
