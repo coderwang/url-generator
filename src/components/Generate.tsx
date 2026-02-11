@@ -21,33 +21,11 @@ const Generate: React.FC = () => {
     null
   );
 
-  // 加载Origin配置和Pathname配置
-  useEffect(() => {
-    chrome.storage.local.get(["originConfig", "pathConfig"], (result) => {
-      if (result.originConfig) {
-        setOriginConfig(result.originConfig);
-      }
-      if (result.pathConfig) {
-        setPathConfig(result.pathConfig);
-      }
-    });
-  }, []);
-
-  // 更新pathname
-  const updatePath = (platform: Platform, value: string) => {
-    setPathConfig((prev) => ({
-      ...prev,
-      [platform]: value,
-    }));
-  };
-
-  // 生成URL
-  const generateUrls = () => {
-    // 保存pathname配置到Chrome Storage
-    chrome.storage.local.set({ pathConfig }, () => {
-      console.log("Pathname配置已保存");
-    });
-
+  // 核心生成逻辑：接收参数，不依赖 state
+  const doGenerateUrls = (
+    currentOriginConfig: AllOriginConfig,
+    currentPathConfig: PathConfig
+  ) => {
     const result: AllOriginConfig = {
       H5: { Qa: "", Pre: "", Prod: "" },
       PC: { Qa: "", Pre: "", Prod: "" },
@@ -59,8 +37,8 @@ const Generate: React.FC = () => {
 
     platforms.forEach((platform) => {
       environments.forEach((env) => {
-        const origin = originConfig[platform][env];
-        const pathname = pathConfig[platform];
+        const origin = currentOriginConfig[platform][env];
+        const pathname = currentPathConfig[platform];
 
         if (origin && pathname) {
           // 移除origin末尾的斜杠（如果有）
@@ -77,7 +55,39 @@ const Generate: React.FC = () => {
     });
 
     setGeneratedUrls(result);
+  };
+
+  // 生成URL（从 state 读取，用于按钮点击）
+  const generateUrls = () => {
+    // 保存pathname配置到Chrome Storage
+    chrome.storage.local.set({ pathConfig }, () => {
+      console.log("Pathname配置已保存");
+    });
+
+    doGenerateUrls(originConfig, pathConfig);
     toast.success("URL generated successfully!");
+  };
+
+  // 加载Origin配置和Pathname配置
+  useEffect(() => {
+    chrome.storage.local.get(["originConfig", "pathConfig"], (result) => {
+      const loadedOriginConfig = result.originConfig || originConfig;
+      const loadedPathConfig = result.pathConfig || pathConfig;
+
+      setOriginConfig(loadedOriginConfig);
+      setPathConfig(loadedPathConfig);
+
+      // 直接使用从 storage 拿到的值生成，不依赖 state
+      doGenerateUrls(loadedOriginConfig, loadedPathConfig);
+    });
+  }, []);
+
+  // 更新pathname
+  const updatePath = (platform: Platform, value: string) => {
+    setPathConfig((prev) => ({
+      ...prev,
+      [platform]: value,
+    }));
   };
 
   const platforms: Platform[] = ["H5", "PC", "App"];
