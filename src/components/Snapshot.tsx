@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
+import Swal from "sweetalert2";
 import { SnapshotsStorage } from "../types";
 import "./Snapshot.css";
 
@@ -29,18 +30,32 @@ const Snapshot: React.FC = () => {
   };
 
   // 删除快照
-  const deleteSnapshot = (name: string, e: React.MouseEvent) => {
+  const deleteSnapshot = async (name: string, e: React.MouseEvent) => {
     e.stopPropagation(); // 阻止触发复制
 
-    if (confirm(`Delete snapshot "${name}"?`)) {
-      const newSnapshots = { ...snapshots };
-      delete newSnapshots[name];
+    const { isConfirmed } = await Swal.fire({
+      title: `Delete snapshot "${name}"?`,
+      icon: "warning",
+      iconHtml: "!",
+      showCancelButton: true,
+      heightAuto: false,
+      scrollbarPadding: false,
+      width: 300,
+      padding: "1.5em",
+      confirmButtonText: "Delete",
+      cancelButtonText: "Cancel",
+      confirmButtonColor: "#d33",
+    });
 
-      chrome.storage.local.set({ snapshots: newSnapshots }, () => {
-        setSnapshots(newSnapshots);
-        toast.success(`Snapshot "${name}" deleted!`);
-      });
-    }
+    if (!isConfirmed) return;
+
+    const newSnapshots = { ...snapshots };
+    delete newSnapshots[name];
+
+    chrome.storage.local.set({ snapshots: newSnapshots }, () => {
+      setSnapshots(newSnapshots);
+      toast.success(`Snapshot "${name}" deleted!`);
+    });
   };
 
   const snapshotList = Object.values(snapshots).sort(

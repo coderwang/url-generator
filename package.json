@@ -11,7 +11,8 @@
   "dependencies": {
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "sonner": "^2.0.7"
+    "sonner": "^2.0.7",
+    "sweetalert2": "^11.26.18"
   },
   "devDependencies": {
     "@types/chrome": "^0.0.268",

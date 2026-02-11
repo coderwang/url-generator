@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Toaster } from "sonner";
+import "sweetalert2/dist/sweetalert2.min.css";
 import "./App.css";
 import Generate from "./components/Generate";
 import Setting from "./components/Setting";

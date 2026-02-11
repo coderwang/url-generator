@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
+import Swal from "sweetalert2";
 import { AllOriginConfig, Environment, PathConfig, Platform } from "../types";
 import "./Generate.css";
 
@@ -126,14 +127,28 @@ const Generate: React.FC = () => {
     }
   };
 
-  const saveSnapshot = () => {
+  const saveSnapshot = async () => {
     const urls = getAllUrls();
     if (!urls) {
       toast.error("No URLs to save!");
       return;
     }
 
-    const snapshotName = prompt("Enter snapshot name:");
+    const { value: snapshotName } = await Swal.fire({
+      title: "Save Snapshot",
+      input: "text",
+      inputPlaceholder: "Enter snapshot name",
+      showCancelButton: true,
+      heightAuto: false,
+      scrollbarPadding: false,
+      width: 320,
+      padding: "1.5em",
+      confirmButtonText: "Save",
+      cancelButtonText: "Cancel",
+      inputValidator: (value) =>
+        value.trim() ? undefined : "Snapshot name is required",
+    });
+
     if (!snapshotName || !snapshotName.trim()) {
       return;
     }
