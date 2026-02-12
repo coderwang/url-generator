@@ -1,12 +1,12 @@
 {
   "name": "url-generator",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "URL Generator Chrome Extension",
   "scripts": {
     "build": "webpack --mode production",
     "dev": "webpack --mode development --watch",
     "watch": "webpack --mode development --watch",
-    "package": "npm run build && cd dist && zip -r ../url-generator-v1.0.0.zip . -x '*.DS_Store' && cd .. && echo '✅ Package created: url-generator-v1.0.0.zip'"
+    "package": "npm run build && cd dist && zip -r ../url-generator-v1.0.1.zip . -x '*.DS_Store' && cd .. && echo '✅ Package created: url-generator-v1.0.1.zip'"
   },
   "dependencies": {
     "react": "^18.2.0",
