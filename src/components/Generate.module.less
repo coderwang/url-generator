@@ -21,6 +21,33 @@
   margin-bottom: 20px;
 }
 
+.fetchPathBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 8px 12px;
+  background: #f8f9fa;
+  color: #667eea;
+  border: 1px dashed #667eea;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    background: #667eea;
+    color: white;
+    border-style: solid;
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
 .inputGroup {
   display: flex;
   flex-direction: column;
@@ -38,11 +65,43 @@
     border-radius: 4px;
     font-size: 14px;
     transition: border-color 0.2s;
+    width: 100%;
 
     &:focus {
       outline: none;
       border-color: #667eea;
     }
+  }
+}
+
+.inputWithAction {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.inputActionBtn {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  background: #f8f9fa;
+  color: #667eea;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    background: #667eea;
+    color: white;
+    border-color: #667eea;
+  }
+
+  &:active {
+    transform: scale(0.92);
   }
 }
 

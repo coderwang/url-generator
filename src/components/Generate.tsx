@@ -88,6 +88,57 @@ const Generate: React.FC = () => {
     }));
   };
 
+  // 获取当前标签页的 pathname
+  const getCurrentTabPath = (): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        if (chrome.runtime.lastError) {
+          reject(new Error(chrome.runtime.lastError.message));
+          return;
+        }
+        const tab = tabs[0];
+        if (tab?.url) {
+          try {
+            const url = new URL(tab.url);
+            // 拼接 pathname + search + hash，保留完整路径信息
+            const fullPath = url.pathname + url.search + url.hash;
+            resolve(fullPath);
+          } catch {
+            reject(new Error("Invalid URL"));
+          }
+        } else {
+          reject(new Error("Cannot access current tab URL"));
+        }
+      });
+    });
+  };
+
+  // 填充单个平台的 pathname
+  const fillPathForPlatform = async (platform: Platform) => {
+    try {
+      const path = await getCurrentTabPath();
+      updatePath(platform, path);
+      toast.success(`Filled ${platform} pathname from current page`);
+    } catch {
+      toast.error("Unable to get current page path");
+    }
+  };
+
+  // 一键填充所有平台的 pathname
+  const fillAllPaths = async () => {
+    try {
+      const path = await getCurrentTabPath();
+      setPathConfig({
+        H5: path,
+        PC: path,
+        App: path,
+      });
+      toast.success("Filled all pathnames from current page");
+    } catch {
+      toast.error("Unable to get current page path");
+    }
+  };
+
   const placeholder = {
     H5: "e.g. /scan",
     PC: "e.g. /recommend",
@@ -184,15 +235,50 @@ const Generate: React.FC = () => {
       </p>
 
       <div className={styles.pathInputs}>
+        <button className={styles.fetchPathBtn} onClick={fillAllPaths}>
+          <svg
+            viewBox="0 0 24 24"
+            width="14"
+            height="14"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M21 12a9 9 0 0 1-9 9m9-9a9 9 0 0 0-9-9m9 9H3m9 9a9 9 0 0 1-9-9m9 9c1.66 0 3-4.03 3-9s-1.34-9-3-9m0 18c-1.66 0-3-4.03-3-9s1.34-9 3-9m-9 9a9 9 0 0 1 9-9" />
+          </svg>
+          Fetch Current Page Path
+        </button>
         {PLATFORMS.map((platform) => (
           <div key={platform} className={styles.inputGroup}>
             <label>{platform} Pathname</label>
-            <input
-              type="text"
-              placeholder={placeholder[platform]}
-              value={pathConfig[platform]}
-              onChange={(e) => updatePath(platform, e.target.value)}
-            />
+            <div className={styles.inputWithAction}>
+              <input
+                type="text"
+                placeholder={placeholder[platform]}
+                value={pathConfig[platform]}
+                onChange={(e) => updatePath(platform, e.target.value)}
+              />
+              <button
+                className={styles.inputActionBtn}
+                onClick={() => fillPathForPlatform(platform)}
+                title={`Fetch current page path for ${platform}`}
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  width="14"
+                  height="14"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M12 5v14M5 12h14" />
+                </svg>
+              </button>
+            </div>
           </div>
         ))}
       </div>
