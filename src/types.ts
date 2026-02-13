@@ -19,6 +19,16 @@ export interface PathConfig {
   App: string;
 }
 
+export interface Profile {
+  id: string;
+  name: string;
+  originConfig: AllOriginConfig;
+}
+
+export interface ProfilesStorage {
+  [id: string]: Profile;
+}
+
 export interface Snapshot {
   name: string;
   urls: string;

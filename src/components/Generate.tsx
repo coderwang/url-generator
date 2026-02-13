@@ -1,22 +1,34 @@
 import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
 import Swal from "sweetalert2";
-import { ENVIRONMENTS, PLATFORMS } from "../consts";
-import { AllOriginConfig, PathConfig, Platform } from "../types";
+import {
+  createDefaultProfile,
+  createOriginConfig,
+  createPathConfig,
+  DEFAULT_PROFILE_ID,
+  ENVIRONMENTS,
+  PLATFORMS,
+} from "../consts";
+import {
+  AllOriginConfig,
+  PathConfig,
+  Platform,
+  ProfilesStorage,
+} from "../types";
+import Dropdown from "./Dropdown";
 import styles from "./Generate.module.less";
 
 const Generate: React.FC = () => {
-  const [originConfig, setOriginConfig] = useState<AllOriginConfig>({
-    H5: { Qa: "", Pre: "", Prod: "" },
-    PC: { Qa: "", Pre: "", Prod: "" },
-    App: { Qa: "", Pre: "", Prod: "" },
+  const [profiles, setProfiles] = useState<ProfilesStorage>({
+    [DEFAULT_PROFILE_ID]: createDefaultProfile(),
   });
+  const [activeProfileId, setActiveProfileId] =
+    useState<string>(DEFAULT_PROFILE_ID);
 
-  const [pathConfig, setPathConfig] = useState<PathConfig>({
-    H5: "",
-    PC: "",
-    App: "",
-  });
+  const originConfig =
+    profiles[activeProfileId]?.originConfig || createOriginConfig();
+
+  const [pathConfig, setPathConfig] = useState<PathConfig>(createPathConfig());
 
   const [generatedUrls, setGeneratedUrls] = useState<AllOriginConfig | null>(
     null
@@ -66,19 +78,48 @@ const Generate: React.FC = () => {
     toast.success("URL generated successfully!");
   };
 
-  // 加载Origin配置和Pathname配置
+  // 加载 profiles、activeProfileId 和 pathConfig
   useEffect(() => {
-    chrome.storage.local.get(["originConfig", "pathConfig"], (result) => {
-      const loadedOriginConfig = result.originConfig || originConfig;
-      const loadedPathConfig = result.pathConfig || pathConfig;
+    chrome.storage.local.get(
+      ["profiles", "activeProfileId", "originConfig", "pathConfig"],
+      (result) => {
+        let loadedOriginConfig = createOriginConfig();
 
-      setOriginConfig(loadedOriginConfig);
-      setPathConfig(loadedPathConfig);
+        if (result.profiles) {
+          const loadedProfiles: ProfilesStorage = result.profiles;
+          const loadedActiveId = result.activeProfileId || DEFAULT_PROFILE_ID;
+          setProfiles(loadedProfiles);
+          setActiveProfileId(loadedActiveId);
+          loadedOriginConfig =
+            loadedProfiles[loadedActiveId]?.originConfig ||
+            createOriginConfig();
+        } else if (result.originConfig) {
+          // 兼容旧版：还没有 profiles 数据
+          loadedOriginConfig = result.originConfig;
+        }
 
-      // 直接使用从 storage 拿到的值生成，不依赖 state
-      doGenerateUrls(loadedOriginConfig, loadedPathConfig);
-    });
+        const loadedPathConfig = result.pathConfig || createPathConfig();
+        setPathConfig(loadedPathConfig);
+
+        doGenerateUrls(loadedOriginConfig, loadedPathConfig);
+      }
+    );
   }, []);
+
+  // 切换 profile
+  const switchProfile = (profileId: string) => {
+    setActiveProfileId(profileId);
+    const newOriginConfig =
+      profiles[profileId]?.originConfig || createOriginConfig();
+    // 同步更新 originConfig 到 storage
+    chrome.storage.local.set({
+      activeProfileId: profileId,
+      originConfig: newOriginConfig,
+    });
+    // 重新生成 URL
+    doGenerateUrls(newOriginConfig, pathConfig);
+    toast.success(`Switched to "${profiles[profileId]?.name}"`);
+  };
 
   // 更新pathname
   const updatePath = (platform: Platform, value: string) => {
@@ -233,6 +274,19 @@ const Generate: React.FC = () => {
       <p className={styles.desc}>
         Enter the pathname for each platform, and generate the complete URL
       </p>
+
+      {/* Profile 选择器 */}
+      <div className={styles.profileSelector}>
+        <label className={styles.profileLabel}>Profile</label>
+        <Dropdown
+          options={Object.values(profiles).map((p) => ({
+            value: p.id,
+            label: p.name,
+          }))}
+          value={activeProfileId}
+          onChange={switchProfile}
+        />
+      </div>
 
       <div className={styles.pathInputs}>
         <button className={styles.fetchPathBtn} onClick={fillAllPaths}>

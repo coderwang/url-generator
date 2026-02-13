@@ -11,7 +11,64 @@
 .desc {
   color: #666;
   font-size: 14px;
-  margin-bottom: 24px;
+  margin-bottom: 16px;
+}
+
+.profileBar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 20px;
+  padding: 10px 12px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e8e8e8;
+}
+
+.profileActions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.profileActionBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  color: #666;
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.2s;
+
+  &:hover {
+    background: #667eea;
+    border-color: #667eea;
+    color: white;
+  }
+
+  &:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+
+    &:hover {
+      background: white;
+      border-color: #ddd;
+      color: #666;
+    }
+  }
+}
+
+.profileActionBtnDanger {
+  &:hover:not(:disabled) {
+    background: #ff4757;
+    border-color: #ff4757;
+  }
 }
 
 .platformSection {
