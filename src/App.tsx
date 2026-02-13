@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Toaster } from "sonner";
 import "sweetalert2/dist/sweetalert2.min.css";
-import "./App.css";
+import styles from "./App.module.less";
 import Generate from "./components/Generate";
 import Setting from "./components/Setting";
 import Snapshot from "./components/Snapshot";
@@ -26,29 +26,29 @@ const App: React.FC = () => {
           },
         }}
       />
-      <div className="app-container">
-        <div className="sidebar">
-          <h1 className="app-title">URL Generator</h1>
-          <nav className="nav-menu">
+      <div className={styles.appContainer}>
+        <div className={styles.sidebar}>
+          <h1 className={styles.appTitle}>URL Generator</h1>
+          <nav className={styles.navMenu}>
             <button
-              className={`nav-item ${
-                currentPage === "generate" ? "active" : ""
+              className={`${styles.navItem} ${
+                currentPage === "generate" ? styles.active : ""
               }`}
               onClick={() => setCurrentPage("generate")}
             >
               Generate
             </button>
             <button
-              className={`nav-item ${
-                currentPage === "snapshot" ? "active" : ""
+              className={`${styles.navItem} ${
+                currentPage === "snapshot" ? styles.active : ""
               }`}
               onClick={() => setCurrentPage("snapshot")}
             >
               Snapshot
             </button>
             <button
-              className={`nav-item ${
-                currentPage === "setting" ? "active" : ""
+              className={`${styles.navItem} ${
+                currentPage === "setting" ? styles.active : ""
               }`}
               onClick={() => setCurrentPage("setting")}
             >
@@ -56,7 +56,7 @@ const App: React.FC = () => {
             </button>
           </nav>
         </div>
-        <div className="main-content">
+        <div className={styles.mainContent}>
           {currentPage === "generate" && <Generate />}
           {currentPage === "snapshot" && <Snapshot />}
           {currentPage === "setting" && <Setting />}

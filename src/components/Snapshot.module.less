@@ -1,43 +1,43 @@
-.snapshot-container {
+.container {
   padding: 20px;
+
+  h2 {
+    font-size: 24px;
+    color: #333;
+    margin-bottom: 8px;
+  }
 }
 
-.snapshot-container h2 {
-  font-size: 24px;
-  color: #333;
-  margin-bottom: 8px;
-}
-
-.snapshot-desc {
+.desc {
   color: #666;
   font-size: 14px;
   margin-bottom: 24px;
 }
 
-.empty-state {
+.emptyState {
   text-align: center;
   padding: 60px 20px;
+
+  p {
+    color: #999;
+    font-size: 16px;
+    margin-bottom: 8px;
+  }
 }
 
-.empty-state p {
-  color: #999;
-  font-size: 16px;
-  margin-bottom: 8px;
-}
-
-.empty-hint {
+.emptyHint {
   color: #bbb;
   font-size: 14px;
 }
 
-.snapshots-grid {
+.snapshotsGrid {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
   row-gap: 12px;
 }
 
-.snapshot-bubble {
+.snapshotBubble {
   flex: 1 1 calc(50% - 8px);
   min-width: 200px;
   max-width: calc(50% - 8px);
@@ -47,32 +47,32 @@
   cursor: pointer;
   transition: all 0.3s ease;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+
+    .snapshotName,
+    .snapshotPreview {
+      color: white;
+    }
+
+    .deleteBtn {
+      color: white;
+      border-color: white;
+    }
+  }
 }
 
-.snapshot-bubble:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-
-.snapshot-bubble:hover .snapshot-name,
-.snapshot-bubble:hover .snapshot-preview {
-  color: white;
-}
-
-.snapshot-bubble:hover .delete-btn {
-  color: white;
-  border-color: white;
-}
-
-.snapshot-header {
+.snapshotHeader {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: 12px;
 }
 
-.snapshot-name {
+.snapshotName {
   font-size: 16px;
   font-weight: 600;
   color: #333;
@@ -86,7 +86,7 @@
   display: -webkit-box;
 }
 
-.delete-btn {
+.deleteBtn {
   background: transparent;
   border: 1px solid #ddd;
   color: #666;
@@ -101,16 +101,16 @@
   transition: all 0.2s;
   flex-shrink: 0;
   margin-left: 8px;
+
+  &:hover {
+    background: #ff4757;
+    border-color: #ff4757;
+    color: white;
+    transform: scale(1.1);
+  }
 }
 
-.delete-btn:hover {
-  background: #ff4757;
-  border-color: #ff4757;
-  color: white;
-  transform: scale(1.1);
-}
-
-.snapshot-preview {
+.snapshotPreview {
   font-size: 11px;
   color: #666;
   line-height: 14px;

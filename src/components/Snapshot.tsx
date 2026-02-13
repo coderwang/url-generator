@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
 import Swal from "sweetalert2";
 import { SnapshotsStorage } from "../types";
-import "./Snapshot.css";
+import styles from "./Snapshot.module.less";
 
 const Snapshot: React.FC = () => {
   const [snapshots, setSnapshots] = useState<SnapshotsStorage>({});
@@ -63,40 +63,40 @@ const Snapshot: React.FC = () => {
   );
 
   return (
-    <div className="snapshot-container">
+    <div className={styles.container}>
       <h2>Snapshots</h2>
-      <p className="snapshot-desc">
+      <p className={styles.desc}>
         Click on a snapshot to copy its URLs to clipboard
       </p>
 
       {snapshotList.length === 0 ? (
-        <div className="empty-state">
+        <div className={styles.emptyState}>
           <p>No snapshots yet</p>
-          <p className="empty-hint">
+          <p className={styles.emptyHint}>
             Generate URLs and click "Save Snapshot" to create one
           </p>
         </div>
       ) : (
-        <div className="snapshots-grid">
+        <div className={styles.snapshotsGrid}>
           {snapshotList.map((snapshot) => (
             <div
               key={snapshot.name}
-              className="snapshot-bubble"
+              className={styles.snapshotBubble}
               onClick={() => copySnapshot(snapshot.name)}
             >
-              <div className="snapshot-header">
-                <h3 className="snapshot-name" title={snapshot.urls}>
+              <div className={styles.snapshotHeader}>
+                <h3 className={styles.snapshotName} title={snapshot.urls}>
                   {snapshot.name}
                 </h3>
                 <button
-                  className="delete-btn"
+                  className={styles.deleteBtn}
                   onClick={(e) => deleteSnapshot(snapshot.name, e)}
                   title="Delete snapshot"
                 >
                   ✕
                 </button>
               </div>
-              <div className="snapshot-preview">{snapshot.urls}</div>
+              <div className={styles.snapshotPreview}>{snapshot.urls}</div>
             </div>
           ))}
         </div>

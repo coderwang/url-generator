@@ -21,6 +21,25 @@ module.exports = {
         exclude: /node_modules/,
       },
       {
+        test: /\.module\.less$/,
+        use: [
+          "style-loader",
+          {
+            loader: "css-loader",
+            options: {
+              modules: {
+                localIdentName: "[name]__[local]--[hash:base64:5]",
+              },
+            },
+          },
+          "less-loader",
+        ],
+      },
+      {
+        test: /(?<!\.module)\.less$/,
+        use: ["style-loader", "css-loader", "less-loader"],
+      },
+      {
         test: /\.css$/,
         use: ["style-loader", "css-loader"],
       },

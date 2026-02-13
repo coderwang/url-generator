@@ -3,7 +3,7 @@ import { toast } from "sonner";
 import Swal from "sweetalert2";
 import { ENVIRONMENTS, PLATFORMS } from "../consts";
 import { AllOriginConfig, PathConfig, Platform } from "../types";
-import "./Generate.css";
+import styles from "./Generate.module.less";
 
 const Generate: React.FC = () => {
   const [originConfig, setOriginConfig] = useState<AllOriginConfig>({
@@ -177,15 +177,15 @@ const Generate: React.FC = () => {
   };
 
   return (
-    <div className="generate-container">
+    <div className={styles.container}>
       <h2>Generate URLs</h2>
-      <p className="generate-desc">
+      <p className={styles.desc}>
         Enter the pathname for each platform, and generate the complete URL
       </p>
 
-      <div className="path-inputs">
+      <div className={styles.pathInputs}>
         {PLATFORMS.map((platform) => (
-          <div key={platform} className="input-group">
+          <div key={platform} className={styles.inputGroup}>
             <label>{platform} Pathname</label>
             <input
               type="text"
@@ -198,7 +198,7 @@ const Generate: React.FC = () => {
       </div>
 
       <button
-        className="main-action-btn"
+        className={styles.mainActionBtn}
         style={{ marginBottom: "24px" }}
         onClick={generateUrls}
       >
@@ -207,14 +207,14 @@ const Generate: React.FC = () => {
 
       {generatedUrls && (
         <>
-          <div className="result-container">
+          <div className={styles.resultContainer}>
             <h3>Generated URLs</h3>
             {PLATFORMS.map((platform) => (
-              <div key={platform} className="result-section">
-                <div className="platform-container">
-                  <div className="platform-name">{platform}</div>
+              <div key={platform} className={styles.resultSection}>
+                <div className={styles.platformContainer}>
+                  <div className={styles.platformName}>{platform}</div>
                   <div
-                    className="copy-platform-btn"
+                    className={styles.copyPlatformBtn}
                     onClick={() => {
                       copyPlatformUrls(platform);
                     }}
@@ -222,11 +222,11 @@ const Generate: React.FC = () => {
                     Copy
                   </div>
                 </div>
-                <div className="url-list">
+                <div className={styles.urlList}>
                   {ENVIRONMENTS.map((env) => (
                     <div
                       key={env}
-                      className="url-item"
+                      className={styles.urlItem}
                       onClick={() => {
                         if (generatedUrls[platform][env]) {
                           navigator.clipboard.writeText(
@@ -236,8 +236,8 @@ const Generate: React.FC = () => {
                         }
                       }}
                     >
-                      <span className="env-label">{env}:</span>
-                      <div className="url-value">
+                      <span className={styles.envLabel}>{env}:</span>
+                      <div className={styles.urlValue}>
                         {generatedUrls[platform][env] || "Not configured"}
                       </div>
                     </div>
@@ -247,10 +247,10 @@ const Generate: React.FC = () => {
             ))}
           </div>
           <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
-            <button className="main-action-btn" onClick={copyAllUrls}>
+            <button className={styles.mainActionBtn} onClick={copyAllUrls}>
               Copy All URLs
             </button>
-            <button className="main-action-btn" onClick={saveSnapshot}>
+            <button className={styles.mainActionBtn} onClick={saveSnapshot}>
               Save Snapshot
             </button>
           </div>
