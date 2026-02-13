@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "URL Generator",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Generate URLs for multiple environments (QA, Pre, Prod) across different platforms (H5, PC, App). Save and manage URL snapshots.",
   "author": "coderwsh",
   "permissions": ["storage", "activeTab"],
