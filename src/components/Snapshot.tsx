@@ -10,6 +10,16 @@ import styles from "./Snapshot.module.less";
 
 const Snapshot: React.FC = () => {
   const [snapshots, setSnapshots] = useState<SnapshotsStorage>({});
+  const [searchInput, setSearchInput] = useState("");
+  const [debouncedKeyword, setDebouncedKeyword] = useState("");
+
+  // 200ms 防抖：searchInput 变化后 200ms 才同步到 debouncedKeyword
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedKeyword(searchInput);
+    }, 200);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
 
   // 加载快照
   useEffect(() => {
@@ -145,9 +155,22 @@ const Snapshot: React.FC = () => {
     });
   };
 
-  const snapshotList = Object.values(snapshots).sort(
+  const allSnapshots = Object.values(snapshots).sort(
     (a, b) => b.timestamp - a.timestamp
   );
+
+  const showSearch = allSnapshots.length >= 1;
+
+  // 模糊搜索：按名称和 URL 内容匹配（不区分大小写）
+  const filteredSnapshots = debouncedKeyword
+    ? allSnapshots.filter((s) => {
+        const keyword = debouncedKeyword.toLowerCase();
+        return (
+          s.name.toLowerCase().includes(keyword) ||
+          s.urls.toLowerCase().includes(keyword)
+        );
+      })
+    : allSnapshots;
 
   return (
     <div className={styles.container}>
@@ -156,16 +179,67 @@ const Snapshot: React.FC = () => {
         Click on a snapshot to copy its URLs to clipboard
       </p>
 
-      {snapshotList.length === 0 ? (
+      {showSearch && (
+        <div className={styles.searchBar}>
+          <svg
+            className={styles.searchIcon}
+            viewBox="0 0 24 24"
+            width="16"
+            height="16"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <circle cx="11" cy="11" r="8" />
+            <path d="m21 21-4.3-4.3" />
+          </svg>
+          <input
+            className={styles.searchInput}
+            type="text"
+            placeholder="Search snapshots by name or URL"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+          />
+          {searchInput && (
+            <button
+              className={styles.searchClear}
+              onClick={() => setSearchInput("")}
+              onMouseDown={(e) => e.preventDefault()}
+            >
+              <svg
+                viewBox="0 0 24 24"
+                width="14"
+                height="14"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M18 6 6 18M6 6l12 12" />
+              </svg>
+            </button>
+          )}
+        </div>
+      )}
+
+      {allSnapshots.length === 0 ? (
         <div className={styles.emptyState}>
           <p>No snapshots yet</p>
           <p className={styles.emptyHint}>
             Generate URLs and click "Save Snapshot" to create one
           </p>
         </div>
+      ) : filteredSnapshots.length === 0 ? (
+        <div className={styles.emptyState}>
+          <p>No matching snapshots</p>
+          <p className={styles.emptyHint}>Try a different search keyword</p>
+        </div>
       ) : (
         <div className={styles.snapshotsGrid}>
-          {snapshotList.map((snapshot) => (
+          {filteredSnapshots.map((snapshot) => (
             <div
               key={snapshot.name}
               className={styles.snapshotBubble}
@@ -244,7 +318,7 @@ const Snapshot: React.FC = () => {
                   }
                   interactive={true}
                   trigger="mouseenter"
-                  placement="bottom-end"
+                  placement="bottom-start"
                   animation="shift-away-subtle"
                   duration={[150, 100]}
                   offset={[0, 4]}

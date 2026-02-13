@@ -14,6 +14,63 @@
   margin-bottom: 24px;
 }
 
+.searchBar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 8px 12px;
+  background: #f8f9fa;
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  transition: border-color 0.2s;
+
+  &:focus-within {
+    border-color: #667eea;
+    background: white;
+  }
+}
+
+.searchIcon {
+  flex-shrink: 0;
+  color: #999;
+}
+
+.searchInput {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 14px;
+  color: #333;
+
+  &::placeholder {
+    color: #bbb;
+  }
+}
+
+.searchClear {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 50%;
+  color: #999;
+  cursor: pointer;
+  transition: all 0.15s;
+
+  &:hover {
+    background: #e8e8e8;
+    color: #666;
+  }
+}
+
 .emptyState {
   text-align: center;
   padding: 60px 20px;
