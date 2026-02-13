@@ -9,10 +9,12 @@
     "package": "npm run build && cd dist && zip -r ../url-generator-v1.0.2.zip . -x '*.DS_Store' && cd .. && echo '✅ Package created: url-generator-v1.0.2.zip'"
   },
   "dependencies": {
+    "@tippyjs/react": "^4.2.6",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "sonner": "^2.0.7",
-    "sweetalert2": "^11.26.18"
+    "sweetalert2": "^11.26.18",
+    "tippy.js": "^6.3.7"
   },
   "devDependencies": {
     "@types/chrome": "^0.0.268",

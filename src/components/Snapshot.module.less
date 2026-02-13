@@ -58,9 +58,14 @@
       color: white;
     }
 
-    .deleteBtn {
-      color: white;
-      border-color: white;
+    .moreBtn {
+      opacity: 1;
+      color: rgba(255, 255, 255, 0.8);
+
+      &:hover {
+        color: white;
+        background: rgba(255, 255, 255, 0.2);
+      }
     }
   }
 }
@@ -86,28 +91,82 @@
   display: -webkit-box;
 }
 
-.deleteBtn {
-  background: transparent;
-  border: 1px solid #ddd;
-  color: #666;
+.moreBtn {
+  flex-shrink: 0;
+  margin-left: 4px;
   width: 24px;
   height: 24px;
-  border-radius: 50%;
-  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: #999;
+  cursor: pointer;
+  opacity: 0;
   transition: all 0.2s;
-  flex-shrink: 0;
-  margin-left: 8px;
+  padding: 0;
 
   &:hover {
-    background: #ff4757;
-    border-color: #ff4757;
-    color: white;
-    transform: scale(1.1);
+    color: #667eea;
+    background: rgba(102, 126, 234, 0.1);
   }
+}
+
+// Tippy theme override（需要全局选择器覆盖 tippy 样式）
+:global {
+  .tippy-box[data-theme~="menu"] {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.05);
+    padding: 4px;
+
+    .tippy-content {
+      padding: 0;
+    }
+  }
+}
+
+.menu {
+  min-width: 120px;
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  font-size: 13px;
+  color: #333;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.15s;
+  white-space: nowrap;
+
+  &:hover {
+    background: #f0f2ff;
+    color: #667eea;
+  }
+
+  svg {
+    flex-shrink: 0;
+  }
+}
+
+.menuItemDanger {
+  color: #999;
+
+  &:hover {
+    background: #fff0f0;
+    color: #ff4757;
+  }
+}
+
+.menuDivider {
+  height: 1px;
+  background: #f0f0f0;
+  margin: 4px 8px;
 }
 
 .snapshotPreview {
