@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { ENVIRONMENTS, PLATFORMS } from "../consts";
 import { AllOriginConfig, Environment, Platform } from "../types";
 import "./Setting.css";
 
@@ -41,8 +42,6 @@ const Setting: React.FC = () => {
     }));
   };
 
-  const platforms: Platform[] = ["H5", "PC", "App"];
-  const environments: Environment[] = ["Qa", "Pre", "Prod"];
   const placeholder = {
     H5: {
       Qa: "e.g. https://hk-m-qa.weizhipin.com",
@@ -68,11 +67,11 @@ const Setting: React.FC = () => {
         Configure the environment Origin for each platform
       </p>
 
-      {platforms.map((platform) => (
+      {PLATFORMS.map((platform) => (
         <div key={platform} className="platform-section">
           <h3>{platform}</h3>
           <div className="env-inputs">
-            {environments.map((env) => (
+            {ENVIRONMENTS.map((env) => (
               <div key={env} className="input-group">
                 <label>{env}</label>
                 <input

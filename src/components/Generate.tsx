@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
 import Swal from "sweetalert2";
-import { AllOriginConfig, Environment, PathConfig, Platform } from "../types";
+import { ENVIRONMENTS, PLATFORMS } from "../consts";
+import { AllOriginConfig, PathConfig, Platform } from "../types";
 import "./Generate.css";
 
 const Generate: React.FC = () => {
@@ -32,11 +33,8 @@ const Generate: React.FC = () => {
       App: { Qa: "", Pre: "", Prod: "" },
     };
 
-    const platforms: Platform[] = ["H5", "PC", "App"];
-    const environments: Environment[] = ["Qa", "Pre", "Prod"];
-
-    platforms.forEach((platform) => {
-      environments.forEach((env) => {
+    PLATFORMS.forEach((platform) => {
+      ENVIRONMENTS.forEach((env) => {
         const origin = currentOriginConfig[platform][env];
         const pathname = currentPathConfig[platform];
 
@@ -90,8 +88,6 @@ const Generate: React.FC = () => {
     }));
   };
 
-  const platforms: Platform[] = ["H5", "PC", "App"];
-  const environments: Environment[] = ["Qa", "Pre", "Prod"];
   const placeholder = {
     H5: "e.g. /scan",
     PC: "e.g. /recommend",
@@ -101,18 +97,18 @@ const Generate: React.FC = () => {
   const getAllUrls = () => {
     let urls = "";
     if (generatedUrls) {
-      environments.forEach((env, index) => {
+      ENVIRONMENTS.forEach((env, index) => {
         urls += `${env}\n`;
-        platforms.forEach((platform, idx) => {
+        PLATFORMS.forEach((platform, idx) => {
           urls += `${platform}: ${generatedUrls[platform][env]}`;
           if (
-            index !== environments.length - 1 ||
-            idx !== platforms.length - 1
+            index !== ENVIRONMENTS.length - 1 ||
+            idx !== PLATFORMS.length - 1
           ) {
             urls += "\n";
           }
         });
-        index !== environments.length - 1 && (urls += "\n");
+        index !== ENVIRONMENTS.length - 1 && (urls += "\n");
       });
     }
     return urls;
@@ -188,7 +184,7 @@ const Generate: React.FC = () => {
       </p>
 
       <div className="path-inputs">
-        {platforms.map((platform) => (
+        {PLATFORMS.map((platform) => (
           <div key={platform} className="input-group">
             <label>{platform} Pathname</label>
             <input
@@ -213,7 +209,7 @@ const Generate: React.FC = () => {
         <>
           <div className="result-container">
             <h3>Generated URLs</h3>
-            {platforms.map((platform) => (
+            {PLATFORMS.map((platform) => (
               <div key={platform} className="result-section">
                 <div className="platform-container">
                   <div className="platform-name">{platform}</div>
@@ -227,7 +223,7 @@ const Generate: React.FC = () => {
                   </div>
                 </div>
                 <div className="url-list">
-                  {environments.map((env) => (
+                  {ENVIRONMENTS.map((env) => (
                     <div
                       key={env}
                       className="url-item"
