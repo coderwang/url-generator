@@ -32,7 +32,6 @@ export interface ProfilesStorage {
 export interface Snapshot {
   name: string;
   urls: string;
-  timestamp: number;
 }
 
 export interface SnapshotsStorage {

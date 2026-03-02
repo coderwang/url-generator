@@ -259,7 +259,6 @@ const Generate: React.FC = () => {
       snapshots[snapshotName.trim()] = {
         name: snapshotName.trim(),
         urls: urls,
-        timestamp: Date.now(),
       };
 
       chrome.storage.local.set({ snapshots }, () => {

@@ -12,6 +12,7 @@ const Snapshot: React.FC = () => {
   const [snapshots, setSnapshots] = useState<SnapshotsStorage>({});
   const [searchInput, setSearchInput] = useState("");
   const [debouncedKeyword, setDebouncedKeyword] = useState("");
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   // 200ms 防抖：searchInput 变化后 200ms 才同步到 debouncedKeyword
   useEffect(() => {
@@ -117,7 +118,6 @@ const Snapshot: React.FC = () => {
     newSnapshots[name] = {
       ...snapshot,
       urls: newUrls,
-      timestamp: Date.now(), // 更新时间戳
     };
 
     chrome.storage.local.set({ snapshots: newSnapshots }, () => {
@@ -155,9 +155,97 @@ const Snapshot: React.FC = () => {
     });
   };
 
-  const allSnapshots = Object.values(snapshots).sort(
-    (a, b) => b.timestamp - a.timestamp
-  );
+  const exportSnapshots = () => {
+    if (Object.keys(snapshots).length === 0) {
+      toast.error("No snapshots to export");
+      return;
+    }
+    const data = JSON.stringify(snapshots, null, 2);
+    const blob = new Blob([data], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `snapshots_${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("Snapshots exported!");
+  };
+
+  const importSnapshots = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      try {
+        const imported = JSON.parse(
+          event.target?.result as string
+        ) as SnapshotsStorage;
+
+        const entries = Object.values(imported);
+        if (
+          !entries.length ||
+          !entries.every(
+            (s) => typeof s.name === "string" && typeof s.urls === "string"
+          )
+        ) {
+          toast.error("Invalid snapshot file format");
+          return;
+        }
+
+        const hasExisting = Object.keys(snapshots).length > 0;
+
+        if (hasExisting) {
+          const result = await Swal.fire({
+            title: "Import Snapshots",
+            text: `Found ${entries.length} snapshot(s). How to handle existing data?`,
+            icon: "question",
+            showCancelButton: true,
+            heightAuto: false,
+            scrollbarPadding: false,
+            width: 360,
+            padding: "1.5em",
+            confirmButtonText: "Merge",
+            cancelButtonText: "Cancel",
+            showDenyButton: true,
+            denyButtonText: "Replace All",
+            denyButtonColor: "#d33",
+          });
+
+          if (result.isDismissed) return;
+
+          if (result.isDenied) {
+            chrome.storage.local.set({ snapshots: imported }, () => {
+              setSnapshots(imported);
+              toast.success(
+                `Replaced with ${entries.length} imported snapshot(s)`
+              );
+            });
+          } else {
+            const merged = { ...snapshots, ...imported };
+            chrome.storage.local.set({ snapshots: merged }, () => {
+              setSnapshots(merged);
+              toast.success(`Merged ${entries.length} snapshot(s)`);
+            });
+          }
+        } else {
+          chrome.storage.local.set({ snapshots: imported }, () => {
+            setSnapshots(imported);
+            toast.success(`Imported ${entries.length} snapshot(s)`);
+          });
+        }
+      } catch {
+        toast.error("Failed to parse file. Please select a valid JSON file.");
+      }
+    };
+    reader.readAsText(file);
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  const allSnapshots = Object.values(snapshots);
 
   const showSearch = allSnapshots.length >= 1;
 
@@ -174,7 +262,53 @@ const Snapshot: React.FC = () => {
 
   return (
     <div className={styles.container}>
-      <h2>Snapshots</h2>
+      <div className={styles.titleContainer}>
+        <h2>Snapshots</h2>
+        <button
+          className={styles.toolbarBtn}
+          onClick={() => fileInputRef.current?.click()}
+        >
+          <svg
+            viewBox="0 0 24 24"
+            width="14"
+            height="14"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="17 8 12 3 7 8" />
+            <line x1="12" y1="3" x2="12" y2="15" />
+          </svg>
+          <span>Import</span>
+        </button>
+        <button className={styles.toolbarBtn} onClick={exportSnapshots}>
+          <svg
+            viewBox="0 0 24 24"
+            width="14"
+            height="14"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="7 10 12 15 17 10" />
+            <line x1="12" y1="15" x2="12" y2="3" />
+          </svg>
+          <span>Export</span>
+        </button>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".json"
+          style={{ display: "none" }}
+          onChange={importSnapshots}
+        />
+      </div>
       <p className={styles.desc}>
         Click on a snapshot to copy its URLs to clipboard
       </p>
