@@ -3,10 +3,11 @@ import { Toaster } from "sonner";
 import "sweetalert2/dist/sweetalert2.min.css";
 import styles from "./App.module.less";
 import Generate from "./components/Generate";
+import QRCode from "./components/QRCode";
 import Setting from "./components/Setting";
 import Snapshot from "./components/Snapshot";
 
-type Page = "generate" | "snapshot" | "setting";
+type Page = "generate" | "snapshot" | "setting" | "qrcode";
 
 const App: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<Page>("generate");
@@ -48,6 +49,14 @@ const App: React.FC = () => {
             </button>
             <button
               className={`${styles.navItem} ${
+                currentPage === "qrcode" ? styles.active : ""
+              }`}
+              onClick={() => setCurrentPage("qrcode")}
+            >
+              QR Code
+            </button>
+            <button
+              className={`${styles.navItem} ${
                 currentPage === "setting" ? styles.active : ""
               }`}
               onClick={() => setCurrentPage("setting")}
@@ -59,6 +68,7 @@ const App: React.FC = () => {
         <div className={styles.mainContent}>
           {currentPage === "generate" && <Generate />}
           {currentPage === "snapshot" && <Snapshot />}
+          {currentPage === "qrcode" && <QRCode />}
           {currentPage === "setting" && <Setting />}
         </div>
       </div>
