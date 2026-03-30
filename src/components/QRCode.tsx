@@ -21,6 +21,24 @@ const QRCode: React.FC = () => {
 
   const qrRef = useRef<HTMLDivElement>(null);
 
+  const handleGetCurrentPage = async () => {
+    try {
+      const tabs = await chrome.tabs.query({
+        active: true,
+        currentWindow: true,
+      });
+      const tab = tabs[0];
+      if (tab?.url) {
+        setInputValue(tab.url);
+        toast.success("Filled successfully!");
+      } else {
+        toast.error("Failed to fill");
+      }
+    } catch {
+      toast.error("Failed to fill");
+    }
+  };
+
   const handleGenerate = () => {
     const trimmed = inputValue.trim();
     if (!trimmed) return;
@@ -73,7 +91,15 @@ const QRCode: React.FC = () => {
       </p>
 
       <div className={styles.inputGroup}>
-        <label>Content</label>
+        <div className={styles.labelRow}>
+          <label>Content</label>
+          <button
+            className={styles.currentPageBtn}
+            onClick={handleGetCurrentPage}
+          >
+            Get current page URL
+          </button>
+        </div>
         <textarea
           placeholder="e.g. https://example.com"
           value={inputValue}
