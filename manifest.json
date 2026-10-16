@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "URL Generator",
-  "version": "1.0.6",
-  "description": "Generate URLs for multiple environments (QA, Pre, Prod) across different platforms (H5, PC, App). Save and manage URL snapshots.",
+  "version": "1.1.0",
+  "description": "Generate URLs for multiple environments across different platforms. Save and manage URL snapshots. Support generating QR codes.",
   "author": "coderwsh",
   "permissions": ["storage", "activeTab"],
   "action": {
