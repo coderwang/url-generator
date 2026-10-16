@@ -78,7 +78,7 @@ const Generate: React.FC = () => {
     toast.success("URL generated successfully!");
   };
 
-  // 加载 profiles、activeProfileId 和 pathConfig
+  // 加载 profiles、activeProfileId 和 pathConfig（含旧版随机 id 结构迁移）
   useEffect(() => {
     chrome.storage.local.get(
       ["profiles", "activeProfileId", "originConfig", "pathConfig"],
@@ -87,12 +87,41 @@ const Generate: React.FC = () => {
 
         if (result.profiles) {
           const loadedProfiles: ProfilesStorage = result.profiles;
-          const loadedActiveId = result.activeProfileId || DEFAULT_PROFILE_ID;
-          setProfiles(loadedProfiles);
-          setActiveProfileId(loadedActiveId);
-          loadedOriginConfig =
-            loadedProfiles[loadedActiveId]?.originConfig ||
-            createOriginConfig();
+          // 旧版迁移：检测 key 与 profile.name 是否一致（旧版本 key 是随机 id）
+          const needsMigration = Object.entries(loadedProfiles).some(
+            ([key, p]) => key !== p.name || p.id !== p.name
+          );
+
+          if (needsMigration) {
+            // 本页面只做读侧适配：用 name 当 key 查找
+            const migratedProfiles: ProfilesStorage = {};
+            const idToName: Record<string, string> = {};
+            Object.values(loadedProfiles).forEach((p) => {
+              idToName[p.id] = p.name;
+              migratedProfiles[p.name] = { ...p, id: p.name };
+            });
+
+            const oldActiveId: string =
+              result.activeProfileId || DEFAULT_PROFILE_ID;
+            const newActiveId =
+              idToName[oldActiveId] ||
+              loadedProfiles[oldActiveId]?.name ||
+              DEFAULT_PROFILE_ID;
+
+            setProfiles(migratedProfiles);
+            setActiveProfileId(newActiveId);
+            loadedOriginConfig =
+              migratedProfiles[newActiveId]?.originConfig ||
+              createOriginConfig();
+            // 不写回 storage，由 Setting 页打开时统一迁移（避免多入口写冲突）
+          } else {
+            const loadedActiveId = result.activeProfileId || DEFAULT_PROFILE_ID;
+            setProfiles(loadedProfiles);
+            setActiveProfileId(loadedActiveId);
+            loadedOriginConfig =
+              loadedProfiles[loadedActiveId]?.originConfig ||
+              createOriginConfig();
+          }
         } else if (result.originConfig) {
           // 兼容旧版：还没有 profiles 数据
           loadedOriginConfig = result.originConfig;
@@ -255,10 +284,11 @@ const Generate: React.FC = () => {
     chrome.storage.local.get(["snapshots"], (result) => {
       const snapshots = result.snapshots || {};
 
-      // 保存新快照
+      // 保存新快照（关联当前 Profile）
       snapshots[snapshotName.trim()] = {
         name: snapshotName.trim(),
         urls: urls,
+        profileId: activeProfileId,
       };
 
       chrome.storage.local.set({ snapshots }, () => {

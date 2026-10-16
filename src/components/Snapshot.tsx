@@ -5,11 +5,17 @@ import Swal from "sweetalert2";
 import { hideAll } from "tippy.js";
 import "tippy.js/animations/shift-away-subtle.css";
 import "tippy.js/dist/tippy.css";
-import { SnapshotsStorage } from "../types";
+import { DEFAULT_PROFILE_ID } from "../consts";
+import { ProfilesStorage, SnapshotsStorage } from "../types";
+import Dropdown from "./Dropdown";
 import styles from "./Snapshot.module.less";
+
+const ALL_PROFILES = "__all__";
 
 const Snapshot: React.FC = () => {
   const [snapshots, setSnapshots] = useState<SnapshotsStorage>({});
+  const [profiles, setProfiles] = useState<ProfilesStorage>({});
+  const [filterProfileId, setFilterProfileId] = useState<string>(ALL_PROFILES);
   const [searchInput, setSearchInput] = useState("");
   const [debouncedKeyword, setDebouncedKeyword] = useState("");
   const fileInputRef = React.useRef<HTMLInputElement>(null);
@@ -22,15 +28,53 @@ const Snapshot: React.FC = () => {
     return () => clearTimeout(timer);
   }, [searchInput]);
 
-  // 加载快照
+  // 加载快照和 profiles
   useEffect(() => {
-    loadSnapshots();
+    loadData();
   }, []);
 
-  const loadSnapshots = () => {
-    chrome.storage.local.get(["snapshots"], (result) => {
+  const loadData = () => {
+    chrome.storage.local.get(["snapshots", "profiles"], (result) => {
+      const loadedProfiles: ProfilesStorage = result.profiles || {};
+
+      // 旧版迁移：profiles 的 key 是随机 id，需要转换为 name 作为 key
+      const profileNeedsMigration = Object.entries(loadedProfiles).some(
+        ([key, p]) => key !== p.name || p.id !== p.name
+      );
+
+      let profilesMap: ProfilesStorage = loadedProfiles;
+      const idToName: Record<string, string> = {};
+      if (profileNeedsMigration) {
+        profilesMap = {};
+        Object.values(loadedProfiles).forEach((p) => {
+          idToName[p.id] = p.name;
+          profilesMap[p.name] = { ...p, id: p.name };
+        });
+      }
+      setProfiles(profilesMap);
+
       if (result.snapshots) {
-        setSnapshots(result.snapshots);
+        const loaded: SnapshotsStorage = result.snapshots;
+        // 旧数据迁移：
+        // 1) 缺少 profileId 的快照归入 Default profile
+        // 2) 若 profiles 经历了随机 id → name 的迁移，快照的 profileId 也要跟着换
+        let migrated = false;
+        const next: SnapshotsStorage = {};
+        Object.entries(loaded).forEach(([key, snapshot]) => {
+          let profileId = snapshot.profileId;
+          if (!profileId) {
+            profileId = DEFAULT_PROFILE_ID;
+            migrated = true;
+          } else if (profileNeedsMigration && idToName[profileId]) {
+            profileId = idToName[profileId];
+            migrated = true;
+          }
+          next[key] = { ...snapshot, profileId };
+        });
+        if (migrated) {
+          chrome.storage.local.set({ snapshots: next });
+        }
+        setSnapshots(next);
       }
     });
   };
@@ -193,6 +237,26 @@ const Snapshot: React.FC = () => {
           return;
         }
 
+        // 读取最新的 profiles（不依赖 state，避免闭包捕获过期数据）
+        const storageData = await chrome.storage.local.get(["profiles"]);
+        const currentProfiles: ProfilesStorage = storageData.profiles || {};
+
+        // 兼容旧格式 + 修复悬空 profileId：
+        // - 缺少 profileId 或类型不对 → Default
+        // - profileId 在当前 profiles 中不存在（跨设备/已删除） → Default
+        const normalized: SnapshotsStorage = {};
+        let orphanCount = 0;
+        Object.entries(imported).forEach(([key, snapshot]) => {
+          let profileId = snapshot.profileId;
+          if (typeof profileId !== "string" || !profileId) {
+            profileId = DEFAULT_PROFILE_ID;
+          } else if (!currentProfiles[profileId]) {
+            profileId = DEFAULT_PROFILE_ID;
+            orphanCount++;
+          }
+          normalized[key] = { ...snapshot, profileId };
+        });
+
         const hasExisting = Object.keys(snapshots).length > 0;
 
         if (hasExisting) {
@@ -214,24 +278,37 @@ const Snapshot: React.FC = () => {
 
           if (result.isDismissed) return;
 
+          const orphanTip =
+            orphanCount > 0
+              ? ` (${orphanCount} snapshot(s) with unknown profile were assigned to Default)`
+              : "";
+
           if (result.isDenied) {
-            chrome.storage.local.set({ snapshots: imported }, () => {
-              setSnapshots(imported);
+            chrome.storage.local.set({ snapshots: normalized }, () => {
+              setSnapshots(normalized);
               toast.success(
-                `Replaced with ${entries.length} imported snapshot(s)`
+                `Replaced with ${entries.length} imported snapshot(s)${orphanTip}`
               );
             });
           } else {
-            const merged = { ...snapshots, ...imported };
+            const merged = { ...snapshots, ...normalized };
             chrome.storage.local.set({ snapshots: merged }, () => {
               setSnapshots(merged);
-              toast.success(`Merged ${entries.length} snapshot(s)`);
+              toast.success(
+                `Merged ${entries.length} snapshot(s)${orphanTip}`
+              );
             });
           }
         } else {
-          chrome.storage.local.set({ snapshots: imported }, () => {
-            setSnapshots(imported);
-            toast.success(`Imported ${entries.length} snapshot(s)`);
+          const orphanTip =
+            orphanCount > 0
+              ? ` (${orphanCount} snapshot(s) with unknown profile were assigned to Default)`
+              : "";
+          chrome.storage.local.set({ snapshots: normalized }, () => {
+            setSnapshots(normalized);
+            toast.success(
+              `Imported ${entries.length} snapshot(s)${orphanTip}`
+            );
           });
         }
       } catch {
@@ -247,18 +324,29 @@ const Snapshot: React.FC = () => {
 
   const allSnapshots = Object.values(snapshots);
 
+  // 按 Profile 过滤
+  const profileFilteredSnapshots =
+    filterProfileId === ALL_PROFILES
+      ? allSnapshots
+      : allSnapshots.filter((s) => s.profileId === filterProfileId);
+
   const showSearch = allSnapshots.length >= 1;
 
   // 模糊搜索：按名称和 URL 内容匹配（不区分大小写）
   const filteredSnapshots = debouncedKeyword
-    ? allSnapshots.filter((s) => {
+    ? profileFilteredSnapshots.filter((s) => {
         const keyword = debouncedKeyword.toLowerCase();
         return (
           s.name.toLowerCase().includes(keyword) ||
           s.urls.toLowerCase().includes(keyword)
         );
       })
-    : allSnapshots;
+    : profileFilteredSnapshots;
+
+  const profileOptions = [
+    { value: ALL_PROFILES, label: "All Profiles" },
+    ...Object.values(profiles).map((p) => ({ value: p.id, label: p.name })),
+  ];
 
   return (
     <div className={styles.container}>
@@ -312,6 +400,17 @@ const Snapshot: React.FC = () => {
       <p className={styles.desc}>
         Click on a snapshot to copy its URLs to clipboard
       </p>
+
+      {Object.keys(profiles).length > 0 && (
+        <div className={styles.profileFilterBar}>
+          <label className={styles.profileFilterLabel}>Profile</label>
+          <Dropdown
+            options={profileOptions}
+            value={filterProfileId}
+            onChange={setFilterProfileId}
+          />
+        </div>
+      )}
 
       {showSearch && (
         <div className={styles.searchBar}>
@@ -368,8 +467,21 @@ const Snapshot: React.FC = () => {
         </div>
       ) : filteredSnapshots.length === 0 ? (
         <div className={styles.emptyState}>
-          <p>No matching snapshots</p>
-          <p className={styles.emptyHint}>Try a different search keyword</p>
+          {debouncedKeyword ? (
+            <>
+              <p>No matching snapshots</p>
+              <p className={styles.emptyHint}>
+                Try a different search keyword
+              </p>
+            </>
+          ) : (
+            <>
+              <p>No snapshots in this profile</p>
+              <p className={styles.emptyHint}>
+                Switch to another profile or select "All Profiles"
+              </p>
+            </>
+          )}
         </div>
       ) : (
         <div className={styles.snapshotsGrid}>
@@ -380,9 +492,17 @@ const Snapshot: React.FC = () => {
               onClick={() => copySnapshot(snapshot.name)}
             >
               <div className={styles.snapshotHeader}>
-                <h3 className={styles.snapshotName} title={snapshot.urls}>
-                  {snapshot.name}
-                </h3>
+                <div className={styles.snapshotTitleRow}>
+                  <h3 className={styles.snapshotName} title={snapshot.urls}>
+                    {snapshot.name}
+                  </h3>
+                  {filterProfileId === ALL_PROFILES &&
+                    profiles[snapshot.profileId] && (
+                      <span className={styles.profileTag}>
+                        {profiles[snapshot.profileId].name}
+                      </span>
+                    )}
+                </div>
                 <Tippy
                   content={
                     <div

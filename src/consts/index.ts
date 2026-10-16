@@ -21,13 +21,11 @@ export const createPathConfig = (): PathConfig => ({
   App: "",
 });
 
-export const DEFAULT_PROFILE_ID = "default";
+// Profile 的唯一标识就是它的 name
+export const DEFAULT_PROFILE_ID = "Default";
 
 export const createDefaultProfile = (): Profile => ({
   id: DEFAULT_PROFILE_ID,
-  name: "Default",
+  name: DEFAULT_PROFILE_ID,
   originConfig: createOriginConfig(),
 });
-
-export const generateProfileId = (): string =>
-  Date.now().toString(36) + Math.random().toString(36).substring(2, 6);

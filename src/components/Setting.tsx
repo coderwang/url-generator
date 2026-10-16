@@ -6,10 +6,15 @@ import {
   createOriginConfig,
   DEFAULT_PROFILE_ID,
   ENVIRONMENTS,
-  generateProfileId,
   PLATFORMS,
 } from "../consts";
-import { Environment, Platform, Profile, ProfilesStorage } from "../types";
+import {
+  Environment,
+  Platform,
+  Profile,
+  ProfilesStorage,
+  SnapshotsStorage,
+} from "../types";
 import Dropdown from "./Dropdown";
 import styles from "./Setting.module.less";
 
@@ -23,24 +28,67 @@ const Setting: React.FC = () => {
   // 当前激活的 profile
   const activeProfile = profiles[activeProfileId] || createDefaultProfile();
 
-  // 加载 profiles 和 activeProfileId（兼容旧版 originConfig 迁移）
+  // 加载 profiles 和 activeProfileId（兼容旧版数据迁移）
   useEffect(() => {
     chrome.storage.local.get(
-      ["profiles", "activeProfileId", "originConfig"],
+      ["profiles", "activeProfileId", "originConfig", "snapshots"],
       (result) => {
         if (result.profiles) {
-          // 已有 profiles 数据
-          setProfiles(result.profiles);
-          setActiveProfileId(result.activeProfileId || DEFAULT_PROFILE_ID);
+          const loadedProfiles: ProfilesStorage = result.profiles;
+          // 旧版迁移：检测 key 与 profile.id / profile.name 是否一致
+          // 旧版本 profile 的 id 是随机字符串，key 也是随机 id
+          const needsMigration = Object.entries(loadedProfiles).some(
+            ([key, p]) => key !== p.name || p.id !== p.name
+          );
+
+          if (needsMigration) {
+            // 重建 profiles：以 name 为 key
+            const idToName: Record<string, string> = {};
+            const migratedProfiles: ProfilesStorage = {};
+            Object.values(loadedProfiles).forEach((p) => {
+              idToName[p.id] = p.name;
+              migratedProfiles[p.name] = {
+                ...p,
+                id: p.name,
+              };
+            });
+
+            // 迁移 activeProfileId
+            const oldActiveId: string =
+              result.activeProfileId || DEFAULT_PROFILE_ID;
+            const newActiveId =
+              idToName[oldActiveId] ||
+              (loadedProfiles[oldActiveId]?.name ?? DEFAULT_PROFILE_ID);
+
+            // 迁移 snapshots：把 profileId 从旧 id 换成 name
+            const oldSnapshots: SnapshotsStorage = result.snapshots || {};
+            const migratedSnapshots: SnapshotsStorage = {};
+            Object.entries(oldSnapshots).forEach(([key, s]) => {
+              const newProfileId =
+                idToName[s.profileId] || s.profileId || DEFAULT_PROFILE_ID;
+              migratedSnapshots[key] = { ...s, profileId: newProfileId };
+            });
+
+            setProfiles(migratedProfiles);
+            setActiveProfileId(newActiveId);
+            chrome.storage.local.set({
+              profiles: migratedProfiles,
+              activeProfileId: newActiveId,
+              snapshots: migratedSnapshots,
+              originConfig:
+                migratedProfiles[newActiveId]?.originConfig ||
+                createOriginConfig(),
+            });
+          } else {
+            setProfiles(loadedProfiles);
+            setActiveProfileId(result.activeProfileId || DEFAULT_PROFILE_ID);
+          }
         } else if (result.originConfig) {
           // 旧版数据迁移：将 originConfig 迁移到 Default profile
           const migrated: ProfilesStorage = {
-            [DEFAULT_PROFILE_ID]: {
-              id: DEFAULT_PROFILE_ID,
-              name: "Default",
-              originConfig: result.originConfig,
-            },
+            [DEFAULT_PROFILE_ID]: createDefaultProfile(),
           };
+          migrated[DEFAULT_PROFILE_ID].originConfig = result.originConfig;
           setProfiles(migrated);
           setActiveProfileId(DEFAULT_PROFILE_ID);
           // 持久化迁移结果，同时保留旧的 originConfig 以兼容
@@ -80,7 +128,7 @@ const Setting: React.FC = () => {
     toast.success(`Switched to "${profiles[profileId]?.name}"`);
   };
 
-  // 创建新 profile
+  // 创建新 profile（name 即 id，必须唯一）
   const createProfile = async () => {
     const { value: name } = await Swal.fire({
       title: "New Profile",
@@ -93,27 +141,31 @@ const Setting: React.FC = () => {
       padding: "1.5em",
       confirmButtonText: "Create",
       cancelButtonText: "Cancel",
-      inputValidator: (value) =>
-        value.trim() ? undefined : "Profile name is required",
+      inputValidator: (value) => {
+        const trimmed = value.trim();
+        if (!trimmed) return "Profile name is required";
+        if (profiles[trimmed]) return "A profile with this name already exists";
+        return undefined;
+      },
     });
 
     if (!name || !name.trim()) return;
 
-    const id = generateProfileId();
+    const trimmed = name.trim();
     const newProfile: Profile = {
-      id,
-      name: name.trim(),
+      id: trimmed,
+      name: trimmed,
       originConfig: createOriginConfig(),
     };
-    const newProfiles = { ...profiles, [id]: newProfile };
+    const newProfiles = { ...profiles, [trimmed]: newProfile };
 
     setProfiles(newProfiles);
-    setActiveProfileId(id);
-    persistProfiles(newProfiles, id);
-    toast.success(`Profile "${name.trim()}" created!`);
+    setActiveProfileId(trimmed);
+    persistProfiles(newProfiles, trimmed);
+    toast.success(`Profile "${trimmed}" created!`);
   };
 
-  // 重命名当前 profile
+  // 重命名当前 profile（name 即 id，需要级联更新快照的 profileId）
   const renameProfile = async () => {
     const { value: newName } = await Swal.fire({
       title: "Rename Profile",
@@ -126,27 +178,57 @@ const Setting: React.FC = () => {
       padding: "1.5em",
       confirmButtonText: "Rename",
       cancelButtonText: "Cancel",
-      inputValidator: (value) =>
-        value.trim() ? undefined : "Profile name is required",
+      inputValidator: (value) => {
+        const trimmed = value.trim();
+        if (!trimmed) return "Profile name is required";
+        if (trimmed !== activeProfile.name && profiles[trimmed])
+          return "A profile with this name already exists";
+        return undefined;
+      },
     });
 
     if (!newName || !newName.trim() || newName.trim() === activeProfile.name)
       return;
 
-    const newProfiles = {
-      ...profiles,
-      [activeProfileId]: {
-        ...activeProfile,
-        name: newName.trim(),
-      },
-    };
+    const trimmed = newName.trim();
+    const oldId = activeProfileId;
+
+    // 重建 profiles：删除旧 key，新增新 key
+    const newProfiles: ProfilesStorage = {};
+    Object.entries(profiles).forEach(([key, p]) => {
+      if (key === oldId) {
+        newProfiles[trimmed] = { ...p, id: trimmed, name: trimmed };
+      } else {
+        newProfiles[key] = p;
+      }
+    });
+
+    // 级联更新所有快照的 profileId
+    const result = await chrome.storage.local.get(["snapshots"]);
+    const snapshots: SnapshotsStorage = result.snapshots || {};
+    const newSnapshots: SnapshotsStorage = {};
+    let snapshotUpdated = false;
+    Object.entries(snapshots).forEach(([key, s]) => {
+      if (s.profileId === oldId) {
+        newSnapshots[key] = { ...s, profileId: trimmed };
+        snapshotUpdated = true;
+      } else {
+        newSnapshots[key] = s;
+      }
+    });
 
     setProfiles(newProfiles);
-    persistProfiles(newProfiles, activeProfileId);
-    toast.success(`Renamed to "${newName.trim()}"`);
+    setActiveProfileId(trimmed);
+    chrome.storage.local.set({
+      profiles: newProfiles,
+      activeProfileId: trimmed,
+      originConfig: newProfiles[trimmed].originConfig,
+      ...(snapshotUpdated ? { snapshots: newSnapshots } : {}),
+    });
+    toast.success(`Renamed to "${trimmed}"`);
   };
 
-  // 删除当前 profile
+  // 删除当前 profile（联动删除该 profile 下的快照）
   const deleteProfile = async () => {
     const profileKeys = Object.keys(profiles);
     if (profileKeys.length <= 1) {
@@ -154,9 +236,22 @@ const Setting: React.FC = () => {
       return;
     }
 
+    // 统计该 profile 下的快照数量
+    const result = await chrome.storage.local.get(["snapshots"]);
+    const snapshots: SnapshotsStorage = result.snapshots || {};
+    const relatedSnapshots = Object.values(snapshots).filter(
+      (s) => s.profileId === activeProfileId
+    );
+    const snapshotCount = relatedSnapshots.length;
+
+    const warningText =
+      snapshotCount > 0
+        ? `This will also delete ${snapshotCount} snapshot(s) under this profile. This action cannot be undone.`
+        : "This action cannot be undone.";
+
     const { isConfirmed } = await Swal.fire({
       title: `Delete "${activeProfile.name}"?`,
-      text: "This action cannot be undone.",
+      text: warningText,
       icon: "warning",
       iconHtml: "!",
       showCancelButton: true,
@@ -173,6 +268,17 @@ const Setting: React.FC = () => {
 
     const newProfiles = { ...profiles };
     delete newProfiles[activeProfileId];
+
+    // 删除该 profile 下的所有快照
+    if (snapshotCount > 0) {
+      const newSnapshots: SnapshotsStorage = {};
+      Object.entries(snapshots).forEach(([key, snapshot]) => {
+        if (snapshot.profileId !== activeProfileId) {
+          newSnapshots[key] = snapshot;
+        }
+      });
+      chrome.storage.local.set({ snapshots: newSnapshots });
+    }
 
     // 切换到第一个可用的 profile
     const nextId = Object.keys(newProfiles)[0];
